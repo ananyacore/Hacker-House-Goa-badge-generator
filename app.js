@@ -286,42 +286,14 @@ downloadBtn.addEventListener('click', () => {
   }, 'image/png');
 });
 
-// ---------- Share (uploads composited PNG, gets back a link with a real OG image) ----------
+// ---------- Share directly to X (no API call / no short-link generation) ----------
 
-shareBtn.addEventListener('click', async () => {
-  shareBtn.disabled = true;
-  shareStatus.textContent = 'Preparing your share link…';
+shareBtn.addEventListener('click', () => {
+  const text = tweetText.value.trim();
+  const intentUrl = 'https://x.com/intent/tweet?text=' + encodeURIComponent(text);
 
-  try {
-    const imageDataUrl = badgeCanvas.toDataURL('image/png');
-    const resp = await fetch('/api/badges', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageDataUrl })
-    });
-
-    if (!resp.ok) throw new Error('Upload failed');
-    const data = await resp.json();
-
-    // Name travels in the URL itself (query param) so the share page can build a
-    // nice OG title without needing separate server-side metadata storage.
-    const nameParam = encodeURIComponent((nameInput.value || '').trim());
-    const shareUrl = `${location.origin}${data.shareUrl}${nameParam ? '?name=' + nameParam : ''}`;
-
-    shareStatus.textContent = 'Link ready — opening X…';
-
-    const text = tweetText.value;
-    const intentUrl = 'https://x.com/intent/tweet?text=' + encodeURIComponent(text) +
-      '&url=' + encodeURIComponent(shareUrl);
-    window.location.href = intentUrl;
-
-    shareStatus.textContent = `Shared link: ${shareUrl}`;
-  } catch (err) {
-    console.error(err);
-    shareStatus.textContent = 'Could not create a share link — check your connection and try again.';
-  } finally {
-    shareBtn.disabled = false;
-  }
+  shareStatus.textContent = 'Opening X…';
+  window.location.href = intentUrl;
 });
 
 // ---------- Init ----------
